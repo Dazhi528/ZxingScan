@@ -5,7 +5,7 @@ android {
     buildToolsVersion "29.0.2"
 
     defaultConfig {
-        applicationId "com.google.zxing.client.android"
+        applicationId "com.dazhi.scan"
         minSdkVersion 19
         targetSdkVersion 29
         versionCode 108

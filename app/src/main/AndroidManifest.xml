@@ -39,7 +39,7 @@
       android:logo="@drawable/launcher_icon"
       android:label="@string/app_name"
       android:allowBackup="true">
-    <activity android:name=".CaptureActivity"
+    <activity android:name="com.dazhi.scan.CaptureActivity"
         android:screenOrientation="portrait"
         android:clearTaskOnLaunch="true"
         android:stateNotNeeded="true"
@@ -87,7 +87,7 @@
 <!--        android:label="@string/preferences_name"-->
 <!--        android:stateNotNeeded="true"/>-->
 
-    <activity android:name=".encode.EncodeActivity"
+    <activity android:name="com.dazhi.scan.encode.EncodeActivity"
         android:stateNotNeeded="true">
       <intent-filter>
         <action android:name="com.google.zxing.client.android.ENCODE"/>
@@ -107,7 +107,7 @@
       </intent-filter>
     </activity>
 
-    <activity android:name=".ShareActivity"
+    <activity android:name="com.dazhi.scan.ShareActivity"
         android:stateNotNeeded="true"
         android:screenOrientation="user">
       <intent-filter>
