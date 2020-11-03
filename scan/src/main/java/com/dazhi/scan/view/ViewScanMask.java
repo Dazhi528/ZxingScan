@@ -16,16 +16,14 @@
 
 package com.dazhi.scan.view;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.View;
 import com.dazhi.scan.R;
@@ -39,17 +37,23 @@ import java.util.HashSet;
  * 自定义组件实现,扫描功能
  */
 public final class ViewScanMask extends View {
-
     private static final long ANIMATION_DELAY = 100L;
     private static final int OPAQUE = 0xFF;
-
-    private final Paint paint;
-    private Bitmap resultBitmap;
-    private final int maskColor;
-    private final int resultColor;
-    private final int resultPointColor;
     private Collection<ResultPoint> possibleResultPoints;
     private Collection<ResultPoint> lastPossibleResultPoints;
+    //
+    private final Paint paint;
+    private final int maskColor; // 遮罩颜色(扫描框外部)
+    // 布局属性
+    private int innerCornerColor; // 扫描框边角颜色
+    private int innerCornerLength; // 扫描框边角长度
+    private int innerCornerWidth; // 扫描框边角宽度
+    private Bitmap innerLineBitmap; // 扫描线
+    private int lineBitmapTop; // 扫描线移动的y
+    private int innerLineSpeed; // 扫描线移动速度
+    private boolean innerResultPointShow; // 是否展示离散结果点
+    private int innerResultPointColor; // 离散结果点颜色
+
 
     public ViewScanMask(Context context) {
         this(context, null);
@@ -57,183 +61,125 @@ public final class ViewScanMask extends View {
 
     public ViewScanMask(Context context, AttributeSet attrs) {
         this(context, attrs, -1);
-
     }
 
     public ViewScanMask(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         paint = new Paint();
-        Resources resources = getResources();
-        maskColor = resources.getColor(R.color.viewfinder_mask);
-        resultColor = resources.getColor(R.color.result_view);
-        resultPointColor = resources.getColor(R.color.possible_result_points);
+        maskColor = getResources().getColor(R.color.libscan_mask);
         possibleResultPoints = new HashSet<>(5);
-
-        scanLight = BitmapFactory.decodeResource(resources,
-                R.drawable.ico_libscan_line);
-
+        // 初始化内部框参数
         initInnerRect(context, attrs);
     }
 
-    /**
-     * 初始化内部框的大小
-     *
-     * @param context
-     * @param attrs
-     */
+    // 初始化内部框参数
+    @SuppressLint("ResourceAsColor")
+    @SuppressWarnings("IntegerDivisionInFloatingPointContext")
     private void initInnerRect(Context context, AttributeSet attrs) {
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.ViewScanMask);
-
+        // 扫描框的宽度
+        CameraManager.FRAME_WIDTH = (int) ta.getDimension(R.styleable.ViewScanMask_inner_frame_width,
+                UtScanDisplay.screenWidthPx / 2);
+        // 扫描框的高度
+        CameraManager.FRAME_HEIGHT = (int) ta.getDimension(R.styleable.ViewScanMask_inner_frame_height,
+                UtScanDisplay.screenWidthPx / 2);
         // 扫描框距离顶部
-        float innerMarginTop = ta.getDimension(R.styleable.ViewScanMask_inner_margintop, -1);
+        float innerMarginTop = ta.getDimension(R.styleable.ViewScanMask_inner_frame_margintop,
+                -1);
         if (innerMarginTop != -1) {
             CameraManager.FRAME_MARGINTOP = (int) innerMarginTop;
         }
-
-        // 扫描框的宽度
-        CameraManager.FRAME_WIDTH = (int) ta.getDimension(R.styleable.ViewScanMask_inner_width, UtScanDisplay.screenWidthPx / 2);
-
-        // 扫描框的高度
-        CameraManager.FRAME_HEIGHT = (int) ta.getDimension(R.styleable.ViewScanMask_inner_height, UtScanDisplay.screenWidthPx / 2);
-
         // 扫描框边角颜色
-        innercornercolor = ta.getColor(R.styleable.ViewScanMask_inner_corner_color, Color.parseColor("#45DDDD"));
+        innerCornerColor = ta.getColor(R.styleable.ViewScanMask_inner_corner_color,
+                R.color.libscan_line);
         // 扫描框边角长度
-        innercornerlength = (int) ta.getDimension(R.styleable.ViewScanMask_inner_corner_length, 65);
+        innerCornerLength = (int) ta.getDimension(R.styleable.ViewScanMask_inner_corner_length,
+                R.dimen.libscan_cornerlinelength);
         // 扫描框边角宽度
-        innercornerwidth = (int) ta.getDimension(R.styleable.ViewScanMask_inner_corner_width, 15);
-
-        // 扫描bitmap
-        Drawable drawable = ta.getDrawable(R.styleable.ViewScanMask_inner_scan_bitmap);
-        if (drawable != null) {
-        }
-
+        innerCornerWidth = (int) ta.getDimension(R.styleable.ViewScanMask_inner_corner_width,
+                R.dimen.libscan_cornerlinewidth);
         // 扫描控件
-        scanLight = BitmapFactory.decodeResource(getResources(), ta.getResourceId(R.styleable.ViewScanMask_inner_scan_bitmap, R.drawable.ico_libscan_line));
+        innerLineBitmap = BitmapFactory.decodeResource(getResources(), ta.getResourceId(
+                R.styleable.ViewScanMask_inner_line_bitmap,
+                R.drawable.ico_libscan_line));
         // 扫描速度
-        SCAN_VELOCITY = ta.getInt(R.styleable.ViewScanMask_inner_scan_speed, 5);
-
-        isCircle = ta.getBoolean(R.styleable.ViewScanMask_inner_scan_iscircle, true);
-
+        innerLineSpeed = ta.getInt(R.styleable.ViewScanMask_inner_line_speed, 15);
+        // 是否展示离散结果点
+        innerResultPointShow = ta.getBoolean(R.styleable.ViewScanMask_inner_resultpoint_show,
+                false);
+        innerResultPointColor = ta.getColor(R.styleable.ViewScanMask_inner_resultpoint_color,
+                R.color.libscan_result_point);
         ta.recycle();
     }
 
+    @SuppressLint("DrawAllocation")
     @Override
     public void onDraw(Canvas canvas) {
-        Rect frame = CameraManager.get().getFramingRect();
+        Rect frame = CameraManager.self().getFramingRect();
         if (frame == null) {
             return;
         }
-        int width = canvas.getWidth();
-        int height = canvas.getHeight();
-
-        // Draw the exterior (i.e. outside the framing rect) darkened
-        paint.setColor(resultBitmap != null ? resultColor : maskColor);
+        int width = getWidth();
+        int height = getHeight();
+        paint.setColor(maskColor);
         canvas.drawRect(0, 0, width, frame.top, paint);
         canvas.drawRect(0, frame.top, frame.left, frame.bottom + 1, paint);
         canvas.drawRect(frame.right + 1, frame.top, width, frame.bottom + 1, paint);
         canvas.drawRect(0, frame.bottom + 1, width, height, paint);
-
-        if (resultBitmap != null) {
-            // Draw the opaque result bitmap over the scanning rectangle
-            paint.setAlpha(OPAQUE);
-            canvas.drawBitmap(resultBitmap, frame.left, frame.top, paint);
+        drawFrameBounds(canvas, frame);
+        drawScanLight(canvas, frame);
+        Collection<ResultPoint> currentPossible = possibleResultPoints;
+        Collection<ResultPoint> currentLast = lastPossibleResultPoints;
+        if (currentPossible.isEmpty()) {
+            lastPossibleResultPoints = null;
         } else {
-
-            drawFrameBounds(canvas, frame);
-
-            drawScanLight(canvas, frame);
-
-            Collection<ResultPoint> currentPossible = possibleResultPoints;
-            Collection<ResultPoint> currentLast = lastPossibleResultPoints;
-            if (currentPossible.isEmpty()) {
-                lastPossibleResultPoints = null;
-            } else {
-                possibleResultPoints = new HashSet<ResultPoint>(5);
-                lastPossibleResultPoints = currentPossible;
-                paint.setAlpha(OPAQUE);
-                paint.setColor(resultPointColor);
-
-                if (isCircle) {
-                    for (ResultPoint point : currentPossible) {
-                        canvas.drawCircle(frame.left + point.getX(), frame.top + point.getY(), 6.0f, paint);
-                    }
+            possibleResultPoints = new HashSet<>(5);
+            lastPossibleResultPoints = currentPossible;
+            paint.setAlpha(OPAQUE);
+            paint.setColor(innerResultPointColor);
+            if (innerResultPointShow) {
+                for (ResultPoint point : currentPossible) {
+                    canvas.drawCircle(frame.left + point.getX(), frame.top + point.getY(), 6.0f, paint);
                 }
             }
-            if (currentLast != null) {
-                paint.setAlpha(OPAQUE / 2);
-                paint.setColor(resultPointColor);
-
-                if (isCircle) {
-                    for (ResultPoint point : currentLast) {
-                        canvas.drawCircle(frame.left + point.getX(), frame.top + point.getY(), 3.0f, paint);
-                    }
-                }
-            }
-
-            postInvalidateDelayed(ANIMATION_DELAY, frame.left, frame.top, frame.right, frame.bottom);
         }
+        if (currentLast != null) {
+            paint.setAlpha(OPAQUE / 2);
+            paint.setColor(innerResultPointColor);
+            if (innerResultPointShow) {
+                for (ResultPoint point : currentLast) {
+                    canvas.drawCircle(frame.left + point.getX(), frame.top + point.getY(), 3.0f, paint);
+                }
+            }
+        }
+        postInvalidateDelayed(ANIMATION_DELAY, frame.left, frame.top, frame.right, frame.bottom);
     }
-
-    // 扫描线移动的y
-    private int scanLineTop;
-    // 扫描线移动速度
-    private int SCAN_VELOCITY;
-    // 扫描线
-    private Bitmap scanLight;
-    // 是否展示小圆点
-    private boolean isCircle;
 
     /**
      * 绘制移动扫描线
-     *
-     * @param canvas
-     * @param frame
      */
     private void drawScanLight(Canvas canvas, Rect frame) {
-
-        if (scanLineTop == 0) {
-            scanLineTop = frame.top;
+        if (lineBitmapTop == 0) {
+            lineBitmapTop = frame.top;
         }
-
-        if (scanLineTop >= frame.bottom - 30) {
-            scanLineTop = frame.top;
+        if (lineBitmapTop >= frame.bottom - 30) {
+            lineBitmapTop = frame.top;
         } else {
-            scanLineTop += SCAN_VELOCITY;
+            lineBitmapTop += innerLineSpeed;
         }
-        Rect scanRect = new Rect(frame.left, scanLineTop, frame.right,
-                scanLineTop + 30);
-        canvas.drawBitmap(scanLight, null, scanRect, paint);
+        Rect scanRect = new Rect(frame.left, lineBitmapTop, frame.right,
+                lineBitmapTop + 10);
+        canvas.drawBitmap(innerLineBitmap, null, scanRect, paint);
     }
-
-
-    // 扫描框边角颜色
-    private int innercornercolor;
-    // 扫描框边角长度
-    private int innercornerlength;
-    // 扫描框边角宽度
-    private int innercornerwidth;
 
     /**
      * 绘制取景框边框
-     *
-     * @param canvas
-     * @param frame
      */
     private void drawFrameBounds(Canvas canvas, Rect frame) {
-
-        /*paint.setColor(Color.WHITE);
-        paint.setStrokeWidth(2);
-        paint.setStyle(Paint.Style.STROKE);
-
-        canvas.drawRect(frame, paint);*/
-
-        paint.setColor(innercornercolor);
+        paint.setColor(innerCornerColor);
         paint.setStyle(Paint.Style.FILL);
-
-        int corWidth = innercornerwidth;
-        int corLength = innercornerlength;
-
+        int corWidth = innerCornerWidth;
+        int corLength = innerCornerLength;
         // 左上角
         canvas.drawRect(frame.left, frame.top, frame.left + corWidth, frame.top
                 + corLength, paint);
@@ -256,24 +202,12 @@ public final class ViewScanMask extends View {
                 frame.right, frame.bottom, paint);
     }
 
-
     public void drawViewfinder() {
-        resultBitmap = null;
         invalidate();
     }
 
     public void addPossibleResultPoint(ResultPoint point) {
         possibleResultPoints.add(point);
     }
-
-
-    /**
-     * 根据手机的分辨率从 dp 的单位 转成为 px(像素)
-     */
-    public static int dip2px(Context context, float dpValue) {
-        final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (dpValue * scale + 0.5f);
-    }
-
 
 }

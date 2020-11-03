@@ -1,7 +1,6 @@
 package com.dazhi.scan.util;
 
 import android.content.Context;
-import android.os.Handler;
 import android.util.DisplayMetrics;
 
 /**

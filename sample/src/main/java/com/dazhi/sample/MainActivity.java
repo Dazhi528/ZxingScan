@@ -59,7 +59,7 @@ public class MainActivity extends RootSimpActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode==66 && data!=null) {
-            String scanRet = data.getStringExtra(UtScanCode.RESULT_STRING);
+            String scanRet = data.getStringExtra(UtScanCode.RESULT_CODE);
             if(!TextUtils.isEmpty(scanRet)) {
                 RtCmn.toastShort(scanRet);
             }

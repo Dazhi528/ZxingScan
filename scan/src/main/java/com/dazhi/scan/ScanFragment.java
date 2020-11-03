@@ -1,5 +1,7 @@
 package com.dazhi.scan;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
@@ -14,18 +16,16 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
-
-import com.dazhi.scan.R;
 import com.dazhi.scan.camera.CameraManager;
-import com.dazhi.scan.decoding.CaptureActivityHandler;
+import com.dazhi.scan.decoding.ScanActivityHandler;
 import com.dazhi.scan.decoding.InactivityTimer;
 import com.dazhi.scan.util.UtScanCode;
 import com.dazhi.scan.view.ViewScanMask;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.Result;
+import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.util.Vector;
-
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
@@ -33,9 +33,8 @@ import androidx.fragment.app.Fragment;
  * 自定义实现的扫描Fragment
  */
 public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
-
-    private CaptureActivityHandler handler;
-    private ViewScanMask viewfinderView;
+    private ScanActivityHandler handler;
+    private ViewScanMask viewScanMask;
     private boolean hasSurface;
     private Vector<BarcodeFormat> decodeFormats;
     private String characterSet;
@@ -44,7 +43,6 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
     private boolean playBeep;
     private static final float BEEP_VOLUME = 0.10f;
     private boolean vibrate;
-    private SurfaceView surfaceView;
     private SurfaceHolder surfaceHolder;
     private UtScanCode.AnalyzeCallback analyzeCallback;
     private Camera camera;
@@ -52,18 +50,16 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-
-        CameraManager.init(getActivity().getApplication());
-
         hasSurface = false;
         inactivityTimer = new InactivityTimer(this.getActivity());
     }
 
+    @SuppressLint("InflateParams")
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-
+    public View onCreateView(@NotNull LayoutInflater inflater,
+                             @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         Bundle bundle = getArguments();
         View view = null;
         if (bundle != null) {
@@ -72,18 +68,16 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
                 view = inflater.inflate(layoutId, null);
             }
         }
-
         if (view == null) {
-            view = inflater.inflate(R.layout.libscan_frame, null);
+            view = inflater.inflate(R.layout.libscan_fragment, null);
         }
-
-        viewfinderView = (ViewScanMask) view.findViewById(R.id.viewfinder_view);
-        surfaceView = (SurfaceView) view.findViewById(R.id.preview_view);
+        SurfaceView surfaceView = view.findViewById(R.id.preview_view);
+        viewScanMask = view.findViewById(R.id.view_scan_mask);
         surfaceHolder = surfaceView.getHolder();
-
         return view;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public void onResume() {
         super.onResume();
@@ -95,9 +89,10 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
         }
         decodeFormats = null;
         characterSet = null;
-
         playBeep = true;
-        AudioManager audioService = (AudioManager) getActivity().getSystemService(getActivity().AUDIO_SERVICE);
+        getActivity();
+        AudioManager audioService = (AudioManager) getActivity()
+                .getSystemService(Context.AUDIO_SERVICE);
         if (audioService.getRingerMode() != AudioManager.RINGER_MODE_NORMAL) {
             playBeep = false;
         }
@@ -112,7 +107,7 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
             handler.quitSynchronously();
             handler = null;
         }
-        CameraManager.get().closeDriver();
+        CameraManager.self().closeDriver();
     }
 
     @Override
@@ -121,12 +116,88 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
         inactivityTimer.shutdown();
     }
 
+    /**
+     * 作者：WangZezhi  (2020/11/3  16:39)
+     * 功能：SurfaceHolder.Callback 接口实现部分
+     * 描述：
+     */
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+    }
+    @Override
+    public void surfaceCreated(SurfaceHolder holder) {
+        if (!hasSurface) {
+            hasSurface = true;
+            initCamera(holder);
+        }
+
+    }
+    @Override
+    public void surfaceDestroyed(SurfaceHolder holder) {
+        hasSurface = false;
+        if (camera != null) {
+            if (camera != null && CameraManager.self().isPreviewing()) {
+                if (!CameraManager.self().isUseOneShotPreviewCallback()) {
+                    camera.setPreviewCallback(null);
+                }
+                camera.stopPreview();
+                CameraManager.self().getPreviewCallback().setHandler(null, 0);
+                CameraManager.self().getAutoFocusCallback().setHandler(null, 0);
+                CameraManager.self().setPreviewing(false);
+            }
+        }
+    }
+    
+    private void initCamera(SurfaceHolder surfaceHolder) {
+        try {
+            CameraManager.self().openDriver(getActivity(), surfaceHolder);
+            camera = CameraManager.self().getCamera();
+        } catch (Exception e) {
+            return;
+        }
+        if (handler == null) {
+            handler = new ScanActivityHandler(this, decodeFormats, characterSet, viewScanMask);
+        }
+    }
+    private void initBeepSound() {
+        if (playBeep && mediaPlayer == null) {
+            getActivity().setVolumeControlStream(AudioManager.STREAM_MUSIC);
+            mediaPlayer = new MediaPlayer();
+            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            mediaPlayer.setOnCompletionListener(beepListener);
+            AssetFileDescriptor file = getResources().openRawResourceFd(R.raw.beep);
+            try {
+                mediaPlayer.setDataSource(file.getFileDescriptor(),
+                        file.getStartOffset(), file.getLength());
+                file.close();
+                mediaPlayer.setVolume(BEEP_VOLUME, BEEP_VOLUME);
+                mediaPlayer.prepare();
+            } catch (IOException e) {
+                mediaPlayer = null;
+            }
+        }
+    }
+    // 提示音播放完毕后，快退以将其排队
+    private final MediaPlayer.OnCompletionListener beepListener = new MediaPlayer.OnCompletionListener() {
+        public void onCompletion(MediaPlayer mediaPlayer) {
+            mediaPlayer.seekTo(0);
+        }
+    };
+
+    public Handler getHandler() {
+        return handler;
+    }
+    public void drawViewfinder() {
+        viewScanMask.drawViewfinder();
+    }
+    public void setAnalyzeCallback(UtScanCode.AnalyzeCallback analyzeCallback) {
+        this.analyzeCallback = analyzeCallback;
+    }
 
     /**
-     * Handler scan result
-     *
-     * @param result
-     * @param barcode
+     * 作者：WangZezhi  (2020/11/3  16:41)
+     * 功能：扫描结果处理部分
+     * 描述：
      */
     public void handleDecode(Result result, Bitmap barcode) {
         inactivityTimer.onActivity();
@@ -142,135 +213,15 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
             }
         }
     }
-
-    private void initCamera(SurfaceHolder surfaceHolder) {
-        try {
-            CameraManager.get().openDriver(surfaceHolder);
-            camera = CameraManager.get().getCamera();
-        } catch (Exception e) {
-//            if (callBack != null) {
-//                callBack.callBack(e);
-//            }
-            return;
-        }
-//        if (callBack != null) {
-//            callBack.callBack(null);
-//        }
-        if (handler == null) {
-            handler = new CaptureActivityHandler(this, decodeFormats, characterSet, viewfinderView);
-        }
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width,
-                               int height) {
-
-    }
-
-    @Override
-    public void surfaceCreated(SurfaceHolder holder) {
-        if (!hasSurface) {
-            hasSurface = true;
-            initCamera(holder);
-        }
-
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder holder) {
-        hasSurface = false;
-        if (camera != null) {
-            if (camera != null && CameraManager.get().isPreviewing()) {
-                if (!CameraManager.get().isUseOneShotPreviewCallback()) {
-                    camera.setPreviewCallback(null);
-                }
-                camera.stopPreview();
-                CameraManager.get().getPreviewCallback().setHandler(null, 0);
-                CameraManager.get().getAutoFocusCallback().setHandler(null, 0);
-                CameraManager.get().setPreviewing(false);
-            }
-        }
-    }
-
-    public Handler getHandler() {
-        return handler;
-    }
-
-    public void drawViewfinder() {
-        viewfinderView.drawViewfinder();
-
-    }
-
-    private void initBeepSound() {
-        if (playBeep && mediaPlayer == null) {
-            // The volume on STREAM_SYSTEM is not adjustable, and users found it
-            // too loud,
-            // so we now play on the music stream.
-            getActivity().setVolumeControlStream(AudioManager.STREAM_MUSIC);
-            mediaPlayer = new MediaPlayer();
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            mediaPlayer.setOnCompletionListener(beepListener);
-
-            AssetFileDescriptor file = getResources().openRawResourceFd(
-                    R.raw.beep);
-            try {
-                mediaPlayer.setDataSource(file.getFileDescriptor(),
-                        file.getStartOffset(), file.getLength());
-                file.close();
-                mediaPlayer.setVolume(BEEP_VOLUME, BEEP_VOLUME);
-                mediaPlayer.prepare();
-            } catch (IOException e) {
-                mediaPlayer = null;
-            }
-        }
-    }
-
     private static final long VIBRATE_DURATION = 200L;
-
     private void playBeepSoundAndVibrate() {
         if (playBeep && mediaPlayer != null) {
             mediaPlayer.start();
         }
         if (vibrate) {
-            Vibrator vibrator = (Vibrator) getActivity().getSystemService(getActivity().VIBRATOR_SERVICE);
+            Vibrator vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
             vibrator.vibrate(VIBRATE_DURATION);
         }
     }
-
-    /**
-     * When the beep has finished playing, rewind to queue up another one.
-     */
-    private final MediaPlayer.OnCompletionListener beepListener = new MediaPlayer.OnCompletionListener() {
-        public void onCompletion(MediaPlayer mediaPlayer) {
-            mediaPlayer.seekTo(0);
-        }
-    };
-
-    public UtScanCode.AnalyzeCallback getAnalyzeCallback() {
-        return analyzeCallback;
-    }
-
-    public void setAnalyzeCallback(UtScanCode.AnalyzeCallback analyzeCallback) {
-        this.analyzeCallback = analyzeCallback;
-    }
-
-//    @Nullable
-//    CameraInitCallBack callBack;
-//
-//    /**
-//     * Set callback for Camera check whether Camera init success or not.
-//     */
-//    public void setCameraInitCallBack(CameraInitCallBack callBack) {
-//        this.callBack = callBack;
-//    }
-//
-//    interface CameraInitCallBack {
-//        /**
-//         * Callback for Camera init result.
-//         * @param e If is's null,means success.otherwise Camera init failed with the Exception.
-//         */
-//        void callBack(Exception e);
-//    }
-
 
 }

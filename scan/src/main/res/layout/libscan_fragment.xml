@@ -11,15 +11,15 @@
         android:layout_gravity="center" />
 
     <com.dazhi.scan.view.ViewScanMask
-        android:id="@+id/viewfinder_view"
+        android:id="@+id/view_scan_mask"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:inner_width="@dimen/libscan_framewidth"
-        app:inner_height="@dimen/libscan_frameheight"
+        app:inner_frame_width="@dimen/libscan_framewidth"
+        app:inner_frame_height="@dimen/libscan_frameheight"
         app:inner_corner_color="@color/libscan_line"
         app:inner_corner_length="@dimen/libscan_cornerlinelength"
         app:inner_corner_width="@dimen/libscan_cornerlinewidth"
-        app:inner_scan_speed="15"
-        app:inner_scan_iscircle="false" />
+        app:inner_line_speed="15"
+        app:inner_resultpoint_show="false" />
 
 </FrameLayout>

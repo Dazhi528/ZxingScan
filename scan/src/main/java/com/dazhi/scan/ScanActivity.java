@@ -85,7 +85,7 @@ public class ScanActivity extends RootSimpActivity implements View.OnClickListen
         //执行扫面Fragment的初始化操作
         final ScanFragment scanFragment = new ScanFragment();
         //为二维码扫描界面设置定制化界面
-        UtScanCode.setFragmentArgs(scanFragment, R.layout.libscan_frame);
+        UtScanCode.setFragmentArgs(scanFragment, R.layout.libscan_fragment);
         scanFragment.setAnalyzeCallback(new UtScanCode.AnalyzeCallback() {
             @Override
             public void onAnalyzeSuccess(Bitmap mBitmap, String result) {
@@ -102,7 +102,7 @@ public class ScanActivity extends RootSimpActivity implements View.OnClickListen
                     Intent resultIntent = new Intent();
                     Bundle bundle = new Bundle();
                     bundle.putInt(UtScanCode.RESULT_TYPE, UtScanCode.RESULT_SUCCESS);
-                    bundle.putString(UtScanCode.RESULT_STRING, result);
+                    bundle.putString(UtScanCode.RESULT_CODE, result);
                     resultIntent.putExtras(bundle);
                     setResult(RESULT_OK, resultIntent);
                     finish();
@@ -119,7 +119,7 @@ public class ScanActivity extends RootSimpActivity implements View.OnClickListen
                     Intent resultIntent = new Intent();
                     Bundle bundle = new Bundle();
                     bundle.putInt(UtScanCode.RESULT_TYPE, UtScanCode.RESULT_FAILED);
-                    bundle.putString(UtScanCode.RESULT_STRING, "");
+                    bundle.putString(UtScanCode.RESULT_CODE, "");
                     resultIntent.putExtras(bundle);
                     setResult(RESULT_OK, resultIntent);
                     finish();

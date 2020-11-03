@@ -16,6 +16,7 @@
 
 package com.dazhi.scan.camera;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
@@ -33,29 +34,11 @@ import java.io.IOException;
  * both preview and decoding.
  */
 public final class CameraManager {
+    public static int FRAME_WIDTH = -1; // 扫描框的宽度
+    public static int FRAME_HEIGHT = -1; // 扫描框的高度
+    public static int FRAME_MARGINTOP = -1;  // 扫描框距离顶部
 
-    private static final String TAG = CameraManager.class.getSimpleName();
 
-    public static int FRAME_WIDTH = -1;
-    public static int FRAME_HEIGHT = -1;
-    public static int FRAME_MARGINTOP = -1;
-
-    private static CameraManager cameraManager;
-
-    static final int SDK_INT; // Later we can use Build.VERSION.SDK_INT
-
-    static {
-        int sdkInt;
-        try {
-            sdkInt = Integer.parseInt(Build.VERSION.SDK);
-        } catch (NumberFormatException nfe) {
-            // Just to be safe
-            sdkInt = 10000;
-        }
-        SDK_INT = sdkInt;
-    }
-
-    private final Context context;
     private final CameraConfigurationManager configManager;
     private Camera camera;
     private Rect framingRect;
@@ -63,51 +46,25 @@ public final class CameraManager {
     private boolean initialized;
     private boolean previewing;
     private final boolean useOneShotPreviewCallback;
-    /**
-     * Preview frames are delivered here, which we pass on to the registered handler. Make sure to
-     * clear the handler so it will only receive one message.
-     */
     private final PreviewCallback previewCallback;
-    /**
-     * Autofocus callbacks arrive here, and are dispatched to the Handler which requested them.
-     */
     private final AutoFocusCallback autoFocusCallback;
 
-    /**
-     * Initializes this static object with the Context of the calling Activity.
-     *
-     * @param context The Activity which wants to use the camera.
-     */
-    public static void init(Context context) {
-        if (cameraManager == null) {
-            cameraManager = new CameraManager(context);
-        }
-    }
 
-    /**
-     * Gets the CameraManager singleton instance.
-     *
-     * @return A reference to the CameraManager singleton.
-     */
-    public static CameraManager get() {
-        return cameraManager;
-    }
-
-    private CameraManager(Context context) {
-
-        this.context = context;
-        this.configManager = new CameraConfigurationManager(context);
-
-        // Camera.setOneShotPreviewCallback() has a race condition in Cupcake, so we use the older
-        // Camera.setPreviewCallback() on 1.5 and earlier. For Donut and later, we need to use
-        // the more efficient one shot callback, as the older one can swamp the system and cause it
-        // to run out of memory. We can't use SDK_INT because it was introduced in the Donut SDK.
-        //useOneShotPreviewCallback = Integer.parseInt(Build.VERSION.SDK) > Build.VERSION_CODES.CUPCAKE;
-        useOneShotPreviewCallback = Integer.parseInt(Build.VERSION.SDK) > 3; // 3 = Cupcake
-
+    private CameraManager() {
+        this.configManager = new CameraConfigurationManager();
+        useOneShotPreviewCallback = true; // 3 = Cupcake
         previewCallback = new PreviewCallback(configManager, useOneShotPreviewCallback);
         autoFocusCallback = new AutoFocusCallback();
     }
+    private static final class ClassHolder {
+        @SuppressLint("StaticFieldLeak")
+        static final CameraManager INSTANCE=new CameraManager();
+    }
+    public static CameraManager self() {
+        return ClassHolder.INSTANCE;
+    }
+
+
 
     /**
      * Opens the camera driver and initializes the hardware parameters.
@@ -115,7 +72,7 @@ public final class CameraManager {
      * @param holder The surface object which the camera will draw preview frames into.
      * @throws IOException Indicates the camera driver failed to open.
      */
-    public void openDriver(SurfaceHolder holder) throws IOException {
+    public void openDriver(Context context, SurfaceHolder holder) throws IOException {
         if (camera == null) {
             camera = Camera.open();
             if (camera == null) {
@@ -125,16 +82,9 @@ public final class CameraManager {
 
             if (!initialized) {
                 initialized = true;
-                configManager.initFromCameraParameters(camera);
+                configManager.initFromCameraParameters(context, camera);
             }
             configManager.setDesiredCameraParameters(camera);
-
-            //FIXME
-            //     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-            //�Ƿ�ʹ��ǰ��
-//      if (prefs.getBoolean(PreferencesActivity.KEY_FRONT_LIGHT, false)) {
-//        FlashlightManager.enableFlashlight();
-//      }
             FlashlightManager.enableFlashlight();
         }
     }
@@ -218,13 +168,10 @@ public final class CameraManager {
     public Rect getFramingRect() {
         try {
             Point screenResolution = configManager.getScreenResolution();
-            // if (framingRect == null) {
             if (camera == null) {
                 return null;
             }
-
             int leftOffset = (screenResolution.x - FRAME_WIDTH) / 2;
-
             int topOffset;
             if (FRAME_MARGINTOP != -1) {
                 topOffset = FRAME_MARGINTOP;
@@ -232,7 +179,6 @@ public final class CameraManager {
                 topOffset = (screenResolution.y - FRAME_HEIGHT) / 2;
             }
             framingRect = new Rect(leftOffset, topOffset, leftOffset + FRAME_WIDTH, topOffset + FRAME_HEIGHT);
-            // }
             return framingRect;
         } catch (Exception e) {
             e.printStackTrace();
@@ -316,10 +262,6 @@ public final class CameraManager {
         }
         throw new IllegalArgumentException("Unsupported picture format: " +
                 previewFormat + '/' + previewFormatString);
-    }
-
-    public Context getContext() {
-        return context;
     }
 
     public Camera getCamera() {

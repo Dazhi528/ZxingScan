@@ -28,7 +28,7 @@ import android.util.Log;
 import com.dazhi.scan.R;
 import com.dazhi.scan.ScanFragment;
 import com.dazhi.scan.camera.CameraManager;
-import com.dazhi.scan.view.ViewfinderResultPointCallback;
+import com.dazhi.scan.view.RealResultPointCallback;
 import com.dazhi.scan.view.ViewScanMask;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.Result;
@@ -37,9 +37,9 @@ import java.util.Vector;
 /**
  * This class handles all the messaging which comprises the state machine for capture.
  */
-public final class CaptureActivityHandler extends Handler {
+public final class ScanActivityHandler extends Handler {
 
-    private static final String TAG = CaptureActivityHandler.class.getSimpleName();
+    private static final String TAG = ScanActivityHandler.class.getSimpleName();
 
     private final ScanFragment fragment;
     private final DecodeThread decodeThread;
@@ -51,15 +51,15 @@ public final class CaptureActivityHandler extends Handler {
         DONE
     }
 
-    public CaptureActivityHandler(ScanFragment fragment, Vector<BarcodeFormat> decodeFormats,
-                                  String characterSet, ViewScanMask viewfinderView) {
+    public ScanActivityHandler(ScanFragment fragment, Vector<BarcodeFormat> decodeFormats,
+                               String characterSet, ViewScanMask viewfinderView) {
         this.fragment = fragment;
         decodeThread = new DecodeThread(fragment, decodeFormats, characterSet,
-                new ViewfinderResultPointCallback(viewfinderView));
+                new RealResultPointCallback(viewfinderView));
         decodeThread.start();
         state = State.SUCCESS;
         // Start ourselves capturing previews and decoding.
-        CameraManager.get().startPreview();
+        CameraManager.self().startPreview();
         restartPreviewAndDecode();
     }
 
@@ -70,7 +70,7 @@ public final class CaptureActivityHandler extends Handler {
             // When one auto focus pass finishes, start another. This is the closest thing to
             // continuous AF. It does seem to hunt a bit, but I'm not sure what else to do.
             if (state == State.PREVIEW) {
-                CameraManager.get().requestAutoFocus(this, R.id.auto_focus);
+                CameraManager.self().requestAutoFocus(this, R.id.auto_focus);
             }
         } else if (message.what == R.id.restart_preview) {
             Log.d(TAG, "Got restart preview message");
@@ -89,7 +89,7 @@ public final class CaptureActivityHandler extends Handler {
         } else if (message.what == R.id.decode_failed) {
             // We're decoding as fast as possible, so when one decode fails, start another.
             state = State.PREVIEW;
-            CameraManager.get().requestPreviewFrame(decodeThread.getHandler(), R.id.decode);
+            CameraManager.self().requestPreviewFrame(decodeThread.getHandler(), R.id.decode);
         } else if (message.what == R.id.return_scan_result) {
             Log.d(TAG, "Got return scan result message");
             fragment.getActivity().setResult(Activity.RESULT_OK, (Intent) message.obj);
@@ -105,7 +105,7 @@ public final class CaptureActivityHandler extends Handler {
 
     public void quitSynchronously() {
         state = State.DONE;
-        CameraManager.get().stopPreview();
+        CameraManager.self().stopPreview();
         Message quit = Message.obtain(decodeThread.getHandler(), R.id.quit);
         quit.sendToTarget();
         try {
@@ -122,8 +122,8 @@ public final class CaptureActivityHandler extends Handler {
     private void restartPreviewAndDecode() {
         if (state == State.SUCCESS) {
             state = State.PREVIEW;
-            CameraManager.get().requestPreviewFrame(decodeThread.getHandler(), R.id.decode);
-            CameraManager.get().requestAutoFocus(this, R.id.auto_focus);
+            CameraManager.self().requestPreviewFrame(decodeThread.getHandler(), R.id.decode);
+            CameraManager.self().requestAutoFocus(this, R.id.auto_focus);
             fragment.drawViewfinder();
         }
     }

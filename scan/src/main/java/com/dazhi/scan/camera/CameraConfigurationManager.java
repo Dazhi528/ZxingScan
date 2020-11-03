@@ -35,20 +35,17 @@ final class CameraConfigurationManager {
 
     private static final Pattern COMMA_PATTERN = Pattern.compile(",");
 
-    private final Context context;
     private Point screenResolution;
     private Point cameraResolution;
     private int previewFormat;
     private String previewFormatString;
 
-    CameraConfigurationManager(Context context) {
-        this.context = context;
-    }
+
 
     /**
      * Reads, one time, values from the camera that are needed by the app.
      */
-    void initFromCameraParameters(Camera camera) {
+    void initFromCameraParameters(Context context, Camera camera) {
         Camera.Parameters parameters = camera.getParameters();
         previewFormat = parameters.getPreviewFormat();
         previewFormatString = parameters.get("preview-format");
@@ -198,11 +195,7 @@ final class CameraConfigurationManager {
         // Restrict Behold II check to Cupcake, per Samsung's advice
         //if (Build.MODEL.contains("Behold II") &&
         //    CameraManager.SDK_INT == Build.VERSION_CODES.CUPCAKE) {
-        if (Build.MODEL.contains("Behold II") && CameraManager.SDK_INT == 3) { // 3 = Cupcake
-            parameters.set("flash-value", 1);
-        } else {
-            parameters.set("flash-value", 2);
-        }
+        parameters.set("flash-value", 2);
         // This is the standard setting to turn the flash off that all devices should honor.
         parameters.set("flash-mode", "off");
     }
