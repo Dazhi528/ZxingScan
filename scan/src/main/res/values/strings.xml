@@ -1,0 +1,7 @@
+<resources>
+    <!--扫描-->
+    <string name="libscan_close">ScanClose</string>
+    <string name="libscan_lighton">LightOn</string>
+    <string name="libscan_lightoff">LightOff</string>
+    <string name="libscan_fail">Scan failed</string>
+</resources>

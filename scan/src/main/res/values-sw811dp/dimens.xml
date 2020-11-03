@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+	<dimen name="libscan_framewidth">495.6111dp</dimen>
+	<dimen name="libscan_frameheight">428.0278dp</dimen>
+	<dimen name="libscan_cornerlinelength">33.7917dp</dimen>
+	<dimen name="libscan_cornerlinewidth">4.5056dp</dimen>
+	<dimen name="libscan_btmargin">112.6389dp</dimen>
+	<dimen name="libscan_btdrawablepadding">22.5278dp</dimen>
+</resources>

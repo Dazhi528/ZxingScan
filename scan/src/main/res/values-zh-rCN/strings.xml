@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--扫描-->
+    <string name="libscan_close">关闭扫描</string>
+    <string name="libscan_lighton">打开灯光</string>
+    <string name="libscan_lightoff">关闭灯光</string>
+    <string name="libscan_fail">扫描失败</string>
+</resources>
