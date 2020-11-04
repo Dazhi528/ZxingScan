@@ -19,11 +19,9 @@ package com.dazhi.scan.camera;
 import android.content.Context;
 import android.graphics.Point;
 import android.hardware.Camera;
-import android.os.Build;
 import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
-
 import java.util.regex.Pattern;
 
 final class CameraConfigurationManager {
@@ -31,7 +29,6 @@ final class CameraConfigurationManager {
     private static final String TAG = CameraConfigurationManager.class.getSimpleName();
 
     private static final int TEN_DESIRED_ZOOM = 27;
-    private static final int DESIRED_SHARPNESS = 30;
 
     private static final Pattern COMMA_PATTERN = Pattern.compile(",");
 
@@ -45,6 +42,7 @@ final class CameraConfigurationManager {
     /**
      * Reads, one time, values from the camera that are needed by the app.
      */
+    @SuppressWarnings({"deprecation", "SuspiciousNameCombination"})
     void initFromCameraParameters(Context context, Camera camera) {
         Camera.Parameters parameters = camera.getParameters();
         previewFormat = parameters.getPreviewFormat();
@@ -262,10 +260,6 @@ final class CameraConfigurationManager {
         if (takingPictureZoomMaxString != null) {
             parameters.set("taking-picture-zoom", tenDesiredZoom);
         }
-    }
-
-    public static int getDesiredSharpness() {
-        return DESIRED_SHARPNESS;
     }
 
 }

@@ -36,8 +36,8 @@ public class ScanActivity extends RootSimpActivity implements View.OnClickListen
 
     @Override
     protected void initConfig(TextView tvToolTitle) {
-        UtScan.initDisplayOpinion(this);
         ARouter.getInstance().inject(this);
+        UtScan.initDisplayOpinion(this);
         permissionCamera();
     }
 
@@ -84,7 +84,7 @@ public class ScanActivity extends RootSimpActivity implements View.OnClickListen
         //执行扫面Fragment的初始化操作
         final ScanFragment scanFragment = new ScanFragment();
         //为二维码扫描界面设置定制化界面
-        UtScan.setFragmentArgs(scanFragment, R.layout.libscan_fragment);
+//        UtScan.setFragmentArgs(scanFragment, R.layout.libscan_fragment);
         scanFragment.setAnalyzeCallback(new UtScan.AnalyzeCallback() {
             @Override
             public void onAnalyzeSuccess(Bitmap mBitmap, String result) {
@@ -126,8 +126,8 @@ public class ScanActivity extends RootSimpActivity implements View.OnClickListen
             }
         });
         //替换我们的扫描控件
-        getSupportFragmentManager().beginTransaction().replace(R.id.flLibScanContainer, scanFragment).commit();
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.flLibScanContainer, scanFragment).commit();
     }
-
 
 }

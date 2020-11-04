@@ -22,10 +22,8 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.Camera;
-import android.os.Build;
 import android.os.Handler;
 import android.view.SurfaceHolder;
-
 import java.io.IOException;
 
 /**
@@ -41,7 +39,6 @@ public final class CameraManager {
 
     private final CameraConfigurationManager configManager;
     private Camera camera;
-    private Rect framingRect;
     private Rect framingRectInPreview;
     private boolean initialized;
     private boolean previewing;
@@ -83,7 +80,6 @@ public final class CameraManager {
                 configManager.initFromCameraParameters(context, camera);
             }
             configManager.setDesiredCameraParameters(camera);
-            FlashlightManager.enableFlashlight();
         }
     }
 
@@ -92,7 +88,6 @@ public final class CameraManager {
      */
     public void closeDriver() {
         if (camera != null) {
-            FlashlightManager.disableFlashlight();
             camera.release();
             camera = null;
         }
@@ -176,8 +171,7 @@ public final class CameraManager {
             } else {
                 topOffset = (screenResolution.y - FRAME_HEIGHT) / 2;
             }
-            framingRect = new Rect(leftOffset, topOffset, leftOffset + FRAME_WIDTH, topOffset + FRAME_HEIGHT);
-            return framingRect;
+            return new Rect(leftOffset, topOffset, leftOffset + FRAME_WIDTH, topOffset + FRAME_HEIGHT);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -216,6 +210,7 @@ public final class CameraManager {
      * @param height The height of the image.
      * @return A PlanarYUVLuminanceSource instance.
      */
+    @SuppressWarnings("deprecation")
     public PlanarYUVLuminanceSource buildLuminanceSource(byte[] data, int width, int height) {
         Rect rect = getFramingRectInPreview();
         int previewFormat = configManager.getPreviewFormat();

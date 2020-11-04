@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -38,27 +39,31 @@ public class MainActivity extends RootSimpActivity {
     protected void initViewAndDataAndEvent() {
         editText = findViewById(R.id.etInput);
         ImageView imageView = findViewById(R.id.ivQrCode);
-        // ======= 扫描按钮部分
-        boolean booBATCH = false; // 设置true体验批量扫描
-        Button btTest = findViewById(R.id.btGotoScan);
-        btTest.setOnClickListener(view -> {
-            ARouter.getInstance()
-                    .build("/scan/ScanActivity")
-                    .withBoolean("BOO_BATCH", booBATCH) // 需批量扫码时添加
-                    .navigation(MainActivity.this, 66);
-        });
-        // 批量扫描回调监听
-        if(booBATCH) {
+        // ======= 批量扫描
+        Button btBatch = findViewById(R.id.btBatch);
+        btBatch.setOnClickListener(v -> {
             UtScan.addBatchScanCallback(scanCode -> {
                 if(scanCode==null || scanCode.isEmpty()) {
                     return;
                 }
                 RtCmn.toastShort(scanCode);
             });
-        }else { // 非批量扫描时，移除批量扫描测试时添加的回调
+            //
+            ARouter.getInstance()
+                    .build("/scan/ScanActivity")
+                    .withBoolean("BOO_BATCH", true) // 批量扫码设true
+                    .navigation(MainActivity.this, 66);
+        });
+        // ======= 单笔扫描
+        Button btTest = findViewById(R.id.btGotoScan);
+        btTest.setOnClickListener(view -> {
             // 正式代码如果没有添加过批量扫描，可不移除
             UtScan.addBatchScanCallback(null);
-        }
+            //
+            ARouter.getInstance()
+                    .build("/scan/ScanActivity")
+                    .navigation(MainActivity.this, 66);
+        });
         // ======== 生成二维码按钮部分
         Button btQrcode=findViewById(R.id.btCreateQrCode);
         btQrcode.setOnClickListener(view -> {
