@@ -1,5 +1,7 @@
 # ZxingScan
 
+基于Zxing核心库的二维码和条码扫描器(Qr Code And Bar Code Scanner From Zxing)
+
 #### 介绍
 提供二维码和一维码扫码的通用Activity页面，支持ARouter方式跳转
 此库基于yipianfengye/android-zxingLibrary改进，感谢作者分享

@@ -1,8 +1,13 @@
 package com.dazhi.sample;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.Nullable;
 import com.alibaba.android.arouter.launcher.ARouter;
@@ -20,6 +25,7 @@ import com.dazhi.scan.util.UtScanDisplay;
  * 日期：20-9-9 下午6:36
  */
 public class MainActivity extends RootSimpActivity {
+    EditText editText;
 
     @Override
     protected int getLayoutId() {
@@ -33,8 +39,11 @@ public class MainActivity extends RootSimpActivity {
 
     @Override
     protected void initViewAndDataAndEvent() {
-        boolean booBATCH = true; // 设置true体验批量扫描
-        Button btTest = findViewById(R.id.btTest);
+        editText = findViewById(R.id.etInput);
+        ImageView imageView = findViewById(R.id.ivQrCode);
+        // ======= 扫描按钮部分
+        boolean booBATCH = false; // 设置true体验批量扫描
+        Button btTest = findViewById(R.id.btGotoScan);
         btTest.setOnClickListener(view -> {
             ARouter.getInstance()
                     .build("/scan/ScanActivity")
@@ -53,6 +62,14 @@ public class MainActivity extends RootSimpActivity {
             // 正式代码如果没有添加过批量扫描，可不移除
             UtScanDisplay.addBatchScanCallback(null);
         }
+        // ======== 生成二维码按钮部分
+        Button btQrcode=findViewById(R.id.btCreateQrCode);
+        btQrcode.setOnClickListener(view -> {
+            Bitmap mBitmap = UtScanCode.createImage(editText.getText().toString(),
+                    400, 400,
+                    BitmapFactory.decodeResource(getResources(), R.drawable.ico_libscan_hand));
+            imageView.setImageBitmap(mBitmap);
+        });
     }
 
     @Override
@@ -61,7 +78,7 @@ public class MainActivity extends RootSimpActivity {
         if(requestCode==66 && data!=null) {
             String scanRet = data.getStringExtra(UtScanCode.RESULT_CODE);
             if(!TextUtils.isEmpty(scanRet)) {
-                RtCmn.toastShort(scanRet);
+                editText.setText("扫描的内容为："+scanRet);
             }
         }
     }

@@ -103,7 +103,7 @@ public final class ViewScanMask extends View {
                 R.styleable.ViewScanMask_inner_line_bitmap,
                 R.drawable.ico_libscan_line));
         // 扫描速度
-        innerLineSpeed = ta.getInt(R.styleable.ViewScanMask_inner_line_speed, 15);
+        innerLineSpeed = ta.getInt(R.styleable.ViewScanMask_inner_line_speed, 10);
         // 是否展示离散结果点
         innerResultPointShow = ta.getBoolean(R.styleable.ViewScanMask_inner_resultpoint_show,
                 false);
@@ -158,18 +158,25 @@ public final class ViewScanMask extends View {
     /**
      * 绘制移动扫描线
      */
+    private boolean booAdd=true;
     private void drawScanLine(Canvas canvas, Rect frame) {
         int tempSpace = (frame.bottom-frame.top)/4;
-        if (lineBitmapTop == 0) {
-            lineBitmapTop = frame.top+tempSpace;
+        int min = frame.top+tempSpace;
+        int max = frame.bottom - tempSpace;
+        if (lineBitmapTop <= min) {
+            lineBitmapTop = min;
+            booAdd=true;
+        }else if (lineBitmapTop >= max) {
+            lineBitmapTop = max;
+            booAdd=false;
         }
-        if (lineBitmapTop >= frame.bottom - tempSpace) {
-            lineBitmapTop = frame.top+tempSpace;
-        } else {
+        if(booAdd){
             lineBitmapTop += innerLineSpeed;
+        }else {
+            lineBitmapTop -= innerLineSpeed;
         }
         Rect scanRect = new Rect(frame.left, lineBitmapTop, frame.right,
-                lineBitmapTop + 10);
+                lineBitmapTop + 6);
         canvas.drawBitmap(innerLineBitmap, null, scanRect, paint);
     }
 

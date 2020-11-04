@@ -19,7 +19,6 @@
         app:inner_corner_color="@color/libscan_line"
         app:inner_corner_length="@dimen/libscan_cornerlinelength"
         app:inner_corner_width="@dimen/libscan_cornerlinewidth"
-        app:inner_line_speed="15"
         app:inner_resultpoint_show="false" />
 
 </FrameLayout>
