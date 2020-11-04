@@ -127,7 +127,7 @@ public final class ViewScanMask extends View {
         canvas.drawRect(frame.right + 1, frame.top, width, frame.bottom + 1, paint);
         canvas.drawRect(0, frame.bottom + 1, width, height, paint);
         drawFrameBounds(canvas, frame);
-        drawScanLight(canvas, frame);
+        drawScanLine(canvas, frame);
         Collection<ResultPoint> currentPossible = possibleResultPoints;
         Collection<ResultPoint> currentLast = lastPossibleResultPoints;
         if (currentPossible.isEmpty()) {
@@ -158,12 +158,13 @@ public final class ViewScanMask extends View {
     /**
      * 绘制移动扫描线
      */
-    private void drawScanLight(Canvas canvas, Rect frame) {
+    private void drawScanLine(Canvas canvas, Rect frame) {
+        int tempSpace = (frame.bottom-frame.top)/4;
         if (lineBitmapTop == 0) {
-            lineBitmapTop = frame.top;
+            lineBitmapTop = frame.top+tempSpace;
         }
-        if (lineBitmapTop >= frame.bottom - 30) {
-            lineBitmapTop = frame.top;
+        if (lineBitmapTop >= frame.bottom - tempSpace) {
+            lineBitmapTop = frame.top+tempSpace;
         } else {
             lineBitmapTop += innerLineSpeed;
         }
@@ -200,10 +201,6 @@ public final class ViewScanMask extends View {
                 frame.right, frame.bottom, paint);
         canvas.drawRect(frame.right - corLength, frame.bottom - corWidth,
                 frame.right, frame.bottom, paint);
-    }
-
-    public void drawViewfinder() {
-        invalidate();
     }
 
     public void addPossibleResultPoint(ResultPoint point) {

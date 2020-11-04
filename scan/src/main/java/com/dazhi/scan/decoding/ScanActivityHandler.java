@@ -59,7 +59,6 @@ public final class ScanActivityHandler extends Handler {
         decodeThread.start();
         state = State.SUCCESS;
         // Start ourselves capturing previews and decoding.
-        CameraManager.self().startPreview();
         restartPreviewAndDecode();
     }
 
@@ -82,9 +81,9 @@ public final class ScanActivityHandler extends Handler {
 
             /***********************************************************************/
             Bitmap barcode = bundle == null ? null :
-                    (Bitmap) bundle.getParcelable(DecodeThread.BARCODE_BITMAP);//���ñ����߳�
+                    (Bitmap) bundle.getParcelable(DecodeThread.BARCODE_BITMAP);
 
-            fragment.handleDecode((Result) message.obj, barcode);//���ؽ��
+            fragment.handleDecode((Result) message.obj, barcode);
             /***********************************************************************/
         } else if (message.what == R.id.decode_failed) {
             // We're decoding as fast as possible, so when one decode fails, start another.
@@ -122,9 +121,9 @@ public final class ScanActivityHandler extends Handler {
     private void restartPreviewAndDecode() {
         if (state == State.SUCCESS) {
             state = State.PREVIEW;
+            CameraManager.self().startPreview();
             CameraManager.self().requestPreviewFrame(decodeThread.getHandler(), R.id.decode);
             CameraManager.self().requestAutoFocus(this, R.id.auto_focus);
-            fragment.drawViewfinder();
         }
     }
 

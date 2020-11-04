@@ -122,15 +122,15 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
      * 描述：
      */
     @Override
-    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-    }
-    @Override
     public void surfaceCreated(SurfaceHolder holder) {
         if (!hasSurface) {
             hasSurface = true;
             initCamera(holder);
         }
 
+    }
+    @Override
+    public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
     }
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
@@ -187,9 +187,6 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
     public Handler getHandler() {
         return handler;
     }
-    public void drawViewfinder() {
-        viewScanMask.drawViewfinder();
-    }
     public void setAnalyzeCallback(UtScanCode.AnalyzeCallback analyzeCallback) {
         this.analyzeCallback = analyzeCallback;
     }
@@ -202,15 +199,13 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
     public void handleDecode(Result result, Bitmap barcode) {
         inactivityTimer.onActivity();
         playBeepSoundAndVibrate();
-
+        if (analyzeCallback == null) {
+            return;
+        }
         if (result == null || TextUtils.isEmpty(result.getText())) {
-            if (analyzeCallback != null) {
-                analyzeCallback.onAnalyzeFailed();
-            }
+            analyzeCallback.onAnalyzeFailed();
         } else {
-            if (analyzeCallback != null) {
-                analyzeCallback.onAnalyzeSuccess(barcode, result.getText());
-            }
+            analyzeCallback.onAnalyzeSuccess(barcode, result.getText());
         }
     }
     private static final long VIBRATE_DURATION = 200L;
