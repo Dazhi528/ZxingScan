@@ -1,11 +1,13 @@
 package com.dazhi.scan.util;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.DisplayMetrics;
 
 import com.dazhi.scan.ScanFragment;
 import com.dazhi.scan.camera.BitmapLuminanceSource;
@@ -30,8 +32,10 @@ import java.util.Vector;
  * Created by aaron on 16/7/27.
  * 二维码扫描工具类
  */
-public final class UtScanCode {
-    private UtScanCode(){}
+public final class UtScan {
+    private UtScan() {
+    }
+
     //
     public static final String RESULT_CODE = "RESULT_CODE";
     //
@@ -42,12 +46,64 @@ public final class UtScanCode {
     public static final String LAYOUT_ID = "layout_id";
 
 
+    public static int screenWidthPx; //屏幕宽 px
+    public static int screenhightPx; //屏幕高 px
+    public static float density;//屏幕密度
+    public static int densityDPI;//屏幕密度
+    public static float screenWidthDip;//  dp单位
+    public static float screenHightDip;//  dp单位
+    // 批量扫描时需添加此回调
+    private static BatchScanCallback batchScanCallback;
+
+    public interface BatchScanCallback {
+        void call(String scanCode);
+    }
+
+
+    public static void addBatchScanCallback(BatchScanCallback mBatchScanCallback) {
+        batchScanCallback = mBatchScanCallback;
+    }
+
+    public static BatchScanCallback getBatchScanCallback() {
+        return batchScanCallback;
+    }
+
+    public static void initDisplayOpinion(Context context) {
+        if (context == null) {
+            return;
+        }
+        DisplayMetrics dm = context.getResources().getDisplayMetrics();
+        density = dm.density;
+        densityDPI = dm.densityDpi;
+        screenWidthPx = dm.widthPixels;
+        screenhightPx = dm.heightPixels;
+        screenWidthDip = px2dip(context, dm.widthPixels);
+        screenHightDip = px2dip(context, dm.heightPixels);
+    }
+
+    /**
+     * 根据手机的分辨率从 dp 的单位 转成为 px(像素)
+     */
+    public static int dip2px(Context context, float dpValue) {
+        final float scale = context.getResources().getDisplayMetrics().density;
+        return (int) (dpValue * scale + 0.5f);
+    }
+
+    /**
+     * 根据手机的分辨率从 px(像素) 的单位 转成为 dp
+     */
+    public static int px2dip(Context context, float pxValue) {
+        final float scale = context.getResources().getDisplayMetrics().density;
+        return (int) (pxValue / scale + 0.5f);
+    }
+
+
     /**
      * 解析二维码图片工具类
      *
      * @param analyzeCallback
      */
-    public static void analyzeBitmap(String path, AnalyzeCallback analyzeCallback) {
+    public static void analyzeQRCode(String path, AnalyzeCallback analyzeCallback) {
 
         /**
          * 首先判断图片的大小,若图片过大,则执行图片的裁剪操作,防止OOM
@@ -112,7 +168,7 @@ public final class UtScanCode {
      * @param logo
      * @return
      */
-    public static Bitmap createImage(String text, int w, int h, Bitmap logo) {
+    public static Bitmap createQRCode(String text, int w, int h, Bitmap logo) {
         if (TextUtils.isEmpty(text)) {
             return null;
         }
@@ -183,6 +239,7 @@ public final class UtScanCode {
      */
     public interface AnalyzeCallback {
         void onAnalyzeSuccess(Bitmap mBitmap, String result);
+
         void onAnalyzeFailed();
     }
 

@@ -11,8 +11,7 @@ import com.alibaba.android.arouter.facade.annotation.Route;
 import com.alibaba.android.arouter.launcher.ARouter;
 import com.dazhi.libroot.root.RootSimpActivity;
 import com.dazhi.libroot.util.RtCmn;
-import com.dazhi.scan.util.UtScanCode;
-import com.dazhi.scan.util.UtScanDisplay;
+import com.dazhi.scan.util.UtScan;
 
 /**
  * 功能：定制化扫描界面
@@ -37,7 +36,7 @@ public class ScanActivity extends RootSimpActivity implements View.OnClickListen
 
     @Override
     protected void initConfig(TextView tvToolTitle) {
-        UtScanDisplay.initDisplayOpinion(this);
+        UtScan.initDisplayOpinion(this);
         ARouter.getInstance().inject(this);
         permissionCamera();
     }
@@ -64,11 +63,11 @@ public class ScanActivity extends RootSimpActivity implements View.OnClickListen
             booLight = !booLight; //取反
             if (booLight) {
                 //开灯
-                UtScanCode.isLightEnable(true);
+                UtScan.isLightEnable(true);
                 btLibScanLight.setText(R.string.libscan_lightoff);
             } else {
                 //关灯
-                UtScanCode.isLightEnable(false);
+                UtScan.isLightEnable(false);
                 btLibScanLight.setText(R.string.libscan_lighton);
             }
         }
@@ -78,20 +77,20 @@ public class ScanActivity extends RootSimpActivity implements View.OnClickListen
     protected void onDestroy() {
         super.onDestroy();
         //关闭闪光灯
-        UtScanCode.isLightEnable(false);
+        UtScan.isLightEnable(false);
     }
 
     private void initLibScan() {
         //执行扫面Fragment的初始化操作
         final ScanFragment scanFragment = new ScanFragment();
         //为二维码扫描界面设置定制化界面
-        UtScanCode.setFragmentArgs(scanFragment, R.layout.libscan_fragment);
-        scanFragment.setAnalyzeCallback(new UtScanCode.AnalyzeCallback() {
+        UtScan.setFragmentArgs(scanFragment, R.layout.libscan_fragment);
+        scanFragment.setAnalyzeCallback(new UtScan.AnalyzeCallback() {
             @Override
             public void onAnalyzeSuccess(Bitmap mBitmap, String result) {
                 if (booBatch) {
                     // 批量扫描
-                    UtScanDisplay.BatchScanCallback mTemp = UtScanDisplay.getBatchScanCallback();
+                    UtScan.BatchScanCallback mTemp = UtScan.getBatchScanCallback();
                     if(mTemp!=null) {
                         mTemp.call(result);
                     }
@@ -101,8 +100,8 @@ public class ScanActivity extends RootSimpActivity implements View.OnClickListen
                     // 单笔扫描
                     Intent resultIntent = new Intent();
                     Bundle bundle = new Bundle();
-                    bundle.putInt(UtScanCode.RESULT_TYPE, UtScanCode.RESULT_SUCCESS);
-                    bundle.putString(UtScanCode.RESULT_CODE, result);
+                    bundle.putInt(UtScan.RESULT_TYPE, UtScan.RESULT_SUCCESS);
+                    bundle.putString(UtScan.RESULT_CODE, result);
                     resultIntent.putExtras(bundle);
                     setResult(RESULT_OK, resultIntent);
                     finish();
@@ -118,8 +117,8 @@ public class ScanActivity extends RootSimpActivity implements View.OnClickListen
                     // 单笔扫描
                     Intent resultIntent = new Intent();
                     Bundle bundle = new Bundle();
-                    bundle.putInt(UtScanCode.RESULT_TYPE, UtScanCode.RESULT_FAILED);
-                    bundle.putString(UtScanCode.RESULT_CODE, "");
+                    bundle.putInt(UtScan.RESULT_TYPE, UtScan.RESULT_FAILED);
+                    bundle.putString(UtScan.RESULT_CODE, "");
                     resultIntent.putExtras(bundle);
                     setResult(RESULT_OK, resultIntent);
                     finish();

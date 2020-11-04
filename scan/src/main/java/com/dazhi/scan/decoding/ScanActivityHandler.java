@@ -53,6 +53,7 @@ public final class ScanActivityHandler extends Handler {
 
     public ScanActivityHandler(ScanFragment fragment, Vector<BarcodeFormat> decodeFormats,
                                String characterSet, ViewScanMask viewfinderView) {
+        super();
         this.fragment = fragment;
         decodeThread = new DecodeThread(fragment, decodeFormats, characterSet,
                 new RealResultPointCallback(viewfinderView));
@@ -78,13 +79,10 @@ public final class ScanActivityHandler extends Handler {
             Log.d(TAG, "Got decode succeeded message");
             state = State.SUCCESS;
             Bundle bundle = message.getData();
-
-            /***********************************************************************/
+            //
             Bitmap barcode = bundle == null ? null :
                     (Bitmap) bundle.getParcelable(DecodeThread.BARCODE_BITMAP);
-
             fragment.handleDecode((Result) message.obj, barcode);
-            /***********************************************************************/
         } else if (message.what == R.id.decode_failed) {
             // We're decoding as fast as possible, so when one decode fails, start another.
             state = State.PREVIEW;
@@ -112,7 +110,6 @@ public final class ScanActivityHandler extends Handler {
         } catch (InterruptedException e) {
             // continue
         }
-
         // Be absolutely sure we don't send any queued up messages
         removeMessages(R.id.decode_succeeded);
         removeMessages(R.id.decode_failed);

@@ -20,8 +20,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.util.Log;
-
 import com.dazhi.scan.R;
 import com.dazhi.scan.ScanFragment;
 import com.dazhi.scan.camera.CameraManager;
@@ -35,16 +33,14 @@ import com.google.zxing.common.HybridBinarizer;
 import java.util.Hashtable;
 
 final class DecodeHandler extends Handler {
-
-    private static final String TAG = DecodeHandler.class.getSimpleName();
-
     private final ScanFragment fragment;
     private final MultiFormatReader multiFormatReader;
 
-    DecodeHandler(ScanFragment fragment, Hashtable<DecodeHintType, Object> hints) {
+    DecodeHandler(Looper looper, ScanFragment fragment, Hashtable<DecodeHintType, Object> hints) {
+        super(looper);
+        this.fragment = fragment;
         multiFormatReader = new MultiFormatReader();
         multiFormatReader.setHints(hints);
-        this.fragment = fragment;
     }
 
     @Override
@@ -64,10 +60,9 @@ final class DecodeHandler extends Handler {
      * @param width  The width of the preview frame.
      * @param height The height of the preview frame.
      */
+    @SuppressWarnings("SuspiciousNameCombination")
     private void decode(byte[] data, int width, int height) {
-        long start = System.currentTimeMillis();
         Result rawResult = null;
-
         //modify here
         byte[] rotatedData = new byte[data.length];
         for (int y = 0; y < height; y++) {
@@ -77,7 +72,6 @@ final class DecodeHandler extends Handler {
         int tmp = width; // Here we are swapping, that's the difference to #11
         width = height;
         height = tmp;
-
         PlanarYUVLuminanceSource source = CameraManager.self().buildLuminanceSource(rotatedData, width, height);
         BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
         try {
@@ -87,20 +81,18 @@ final class DecodeHandler extends Handler {
         } finally {
             multiFormatReader.reset();
         }
-
+        Message message;
         if (rawResult != null) {
-            long end = System.currentTimeMillis();
-            Log.d(TAG, "Found barcode (" + (end - start) + " ms):\n" + rawResult.toString());
-            Message message = Message.obtain(fragment.getHandler(), R.id.decode_succeeded, rawResult);
+            //Log.d(TAG, "Found barcode (" + (end - start) + " ms):\n" + rawResult.toString());
+            message = Message.obtain(fragment.getHandler(), R.id.decode_succeeded, rawResult);
             Bundle bundle = new Bundle();
             bundle.putParcelable(DecodeThread.BARCODE_BITMAP, source.renderCroppedGreyscaleBitmap());
             message.setData(bundle);
             //Log.d(TAG, "Sending decode succeeded message...");
-            message.sendToTarget();
         } else {
-            Message message = Message.obtain(fragment.getHandler(), R.id.decode_failed);
-            message.sendToTarget();
+            message = Message.obtain(fragment.getHandler(), R.id.decode_failed);
         }
+        message.sendToTarget();
     }
 
 }

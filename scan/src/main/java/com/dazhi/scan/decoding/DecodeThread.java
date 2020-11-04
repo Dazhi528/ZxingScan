@@ -17,65 +17,45 @@
 package com.dazhi.scan.decoding;
 
 import android.os.Handler;
-import android.os.Looper;
-
+import android.os.HandlerThread;
 import com.dazhi.scan.ScanFragment;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.ResultPointCallback;
 import java.util.Hashtable;
 import java.util.Vector;
-import java.util.concurrent.CountDownLatch;
 
-final class DecodeThread extends Thread {
-
+final class DecodeThread extends HandlerThread {
     public static final String BARCODE_BITMAP = "barcode_bitmap";
     private final ScanFragment fragment;
     private final Hashtable<DecodeHintType, Object> hints;
     private Handler handler;
-    private final CountDownLatch handlerInitLatch;
 
     DecodeThread(ScanFragment fragment,
                  Vector<BarcodeFormat> decodeFormats,
                  String characterSet,
                  ResultPointCallback resultPointCallback) {
-
+        super("DecodeThread");
         this.fragment = fragment;
-        handlerInitLatch = new CountDownLatch(1);
-
-        hints = new Hashtable<DecodeHintType, Object>(3);
-
+        hints = new Hashtable<>(3);
         if (decodeFormats == null || decodeFormats.isEmpty()) {
-            decodeFormats = new Vector<BarcodeFormat>();
-            decodeFormats.addAll(DecodeFormatManager.ONE_D_FORMATS);
-            decodeFormats.addAll(DecodeFormatManager.QR_CODE_FORMATS);
-            decodeFormats.addAll(DecodeFormatManager.DATA_MATRIX_FORMATS);
+            decodeFormats = new Vector<>();
+            decodeFormats.addAll(DecodeFormatManager.ONE_D_FORMATS); //条码
+            decodeFormats.addAll(DecodeFormatManager.QR_CODE_FORMATS);//二维码
+            decodeFormats.addAll(DecodeFormatManager.DATA_MATRIX_FORMATS);//特殊二维码
         }
-
         hints.put(DecodeHintType.POSSIBLE_FORMATS, decodeFormats);
-
         if (characterSet != null) {
             hints.put(DecodeHintType.CHARACTER_SET, characterSet);
         }
-
         hints.put(DecodeHintType.NEED_RESULT_POINT_CALLBACK, resultPointCallback);
     }
 
     Handler getHandler() {
-        try {
-            handlerInitLatch.await();
-        } catch (InterruptedException ie) {
-            // continue?
+        if(handler==null) {
+            handler = new DecodeHandler(getLooper(), fragment, hints);
         }
         return handler;
-    }
-
-    @Override
-    public void run() {
-        Looper.prepare();
-        handler = new DecodeHandler(fragment, hints);
-        handlerInitLatch.countDown();
-        Looper.loop();
     }
 
 }

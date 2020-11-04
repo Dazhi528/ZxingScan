@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -13,9 +12,7 @@ import androidx.annotation.Nullable;
 import com.alibaba.android.arouter.launcher.ARouter;
 import com.dazhi.libroot.root.RootSimpActivity;
 import com.dazhi.libroot.util.RtCmn;
-import com.dazhi.libroot.util.RtCode;
-import com.dazhi.scan.util.UtScanCode;
-import com.dazhi.scan.util.UtScanDisplay;
+import com.dazhi.scan.util.UtScan;
 
 /**
  * 功能：
@@ -52,7 +49,7 @@ public class MainActivity extends RootSimpActivity {
         });
         // 批量扫描回调监听
         if(booBATCH) {
-            UtScanDisplay.addBatchScanCallback(scanCode -> {
+            UtScan.addBatchScanCallback(scanCode -> {
                 if(scanCode==null || scanCode.isEmpty()) {
                     return;
                 }
@@ -60,12 +57,12 @@ public class MainActivity extends RootSimpActivity {
             });
         }else { // 非批量扫描时，移除批量扫描测试时添加的回调
             // 正式代码如果没有添加过批量扫描，可不移除
-            UtScanDisplay.addBatchScanCallback(null);
+            UtScan.addBatchScanCallback(null);
         }
         // ======== 生成二维码按钮部分
         Button btQrcode=findViewById(R.id.btCreateQrCode);
         btQrcode.setOnClickListener(view -> {
-            Bitmap mBitmap = UtScanCode.createImage(editText.getText().toString(),
+            Bitmap mBitmap = UtScan.createQRCode(editText.getText().toString(),
                     400, 400,
                     BitmapFactory.decodeResource(getResources(), R.drawable.ico_libscan_hand));
             imageView.setImageBitmap(mBitmap);
@@ -76,7 +73,7 @@ public class MainActivity extends RootSimpActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(requestCode==66 && data!=null) {
-            String scanRet = data.getStringExtra(UtScanCode.RESULT_CODE);
+            String scanRet = data.getStringExtra(UtScan.RESULT_CODE);
             if(!TextUtils.isEmpty(scanRet)) {
                 editText.setText("扫描的内容为："+scanRet);
             }

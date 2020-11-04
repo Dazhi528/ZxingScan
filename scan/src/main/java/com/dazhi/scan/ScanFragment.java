@@ -19,7 +19,7 @@ import android.view.ViewGroup;
 import com.dazhi.scan.camera.CameraManager;
 import com.dazhi.scan.decoding.ScanActivityHandler;
 import com.dazhi.scan.decoding.InactivityTimer;
-import com.dazhi.scan.util.UtScanCode;
+import com.dazhi.scan.util.UtScan;
 import com.dazhi.scan.view.ViewScanMask;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.Result;
@@ -44,7 +44,7 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
     private static final float BEEP_VOLUME = 0.10f;
     private boolean vibrate;
     private SurfaceHolder surfaceHolder;
-    private UtScanCode.AnalyzeCallback analyzeCallback;
+    private UtScan.AnalyzeCallback analyzeCallback;
     private Camera camera;
 
     @Override
@@ -63,7 +63,7 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
         Bundle bundle = getArguments();
         View view = null;
         if (bundle != null) {
-            int layoutId = bundle.getInt(UtScanCode.LAYOUT_ID);
+            int layoutId = bundle.getInt(UtScan.LAYOUT_ID);
             if (layoutId != -1) {
                 view = inflater.inflate(layoutId, null);
             }
@@ -127,7 +127,6 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
             hasSurface = true;
             initCamera(holder);
         }
-
     }
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
@@ -141,8 +140,10 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
                     camera.setPreviewCallback(null);
                 }
                 camera.stopPreview();
-                CameraManager.self().getPreviewCallback().setHandler(null, 0);
-                CameraManager.self().getAutoFocusCallback().setHandler(null, 0);
+                CameraManager.self().getPreviewCallback()
+                        .setHandler(null, 0);
+                CameraManager.self().getAutoFocusCallback()
+                        .setHandler(null, 0);
                 CameraManager.self().setPreviewing(false);
             }
         }
@@ -156,7 +157,8 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
             return;
         }
         if (handler == null) {
-            handler = new ScanActivityHandler(this, decodeFormats, characterSet, viewScanMask);
+            handler = new ScanActivityHandler(this, decodeFormats,
+                    characterSet, viewScanMask);
         }
     }
     private void initBeepSound() {
@@ -178,7 +180,8 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
         }
     }
     // 提示音播放完毕后，快退以将其排队
-    private final MediaPlayer.OnCompletionListener beepListener = new MediaPlayer.OnCompletionListener() {
+    private final MediaPlayer.OnCompletionListener beepListener = new MediaPlayer
+            .OnCompletionListener() {
         public void onCompletion(MediaPlayer mediaPlayer) {
             mediaPlayer.seekTo(0);
         }
@@ -187,7 +190,7 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
     public Handler getHandler() {
         return handler;
     }
-    public void setAnalyzeCallback(UtScanCode.AnalyzeCallback analyzeCallback) {
+    public void setAnalyzeCallback(UtScan.AnalyzeCallback analyzeCallback) {
         this.analyzeCallback = analyzeCallback;
     }
 
@@ -208,14 +211,14 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
             analyzeCallback.onAnalyzeSuccess(barcode, result.getText());
         }
     }
-    private static final long VIBRATE_DURATION = 200L;
     private void playBeepSoundAndVibrate() {
         if (playBeep && mediaPlayer != null) {
             mediaPlayer.start();
         }
         if (vibrate) {
-            Vibrator vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
-            vibrator.vibrate(VIBRATE_DURATION);
+            Vibrator vibrator = (Vibrator) getActivity()
+                    .getSystemService(Context.VIBRATOR_SERVICE);
+            vibrator.vibrate(200);
         }
     }
 

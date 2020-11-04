@@ -28,8 +28,9 @@ import android.util.AttributeSet;
 import android.view.View;
 import com.dazhi.scan.R;
 import com.dazhi.scan.camera.CameraManager;
+import com.dazhi.scan.util.UtScan;
 import com.google.zxing.ResultPoint;
-import com.dazhi.scan.util.UtScanDisplay;
+
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -79,10 +80,10 @@ public final class ViewScanMask extends View {
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.ViewScanMask);
         // 扫描框的宽度
         CameraManager.FRAME_WIDTH = (int) ta.getDimension(R.styleable.ViewScanMask_inner_frame_width,
-                UtScanDisplay.screenWidthPx / 2);
+                UtScan.screenWidthPx / 2);
         // 扫描框的高度
         CameraManager.FRAME_HEIGHT = (int) ta.getDimension(R.styleable.ViewScanMask_inner_frame_height,
-                UtScanDisplay.screenWidthPx / 2);
+                UtScan.screenWidthPx / 2);
         // 扫描框距离顶部
         float innerMarginTop = ta.getDimension(R.styleable.ViewScanMask_inner_frame_margintop,
                 -1);
