@@ -133,20 +133,8 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
     }
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
+        // 执行closeDriver()会调用相机释放，释放时销毁表层执行此方法
         hasSurface = false;
-        if (camera != null) {
-            if (camera != null && CameraManager.self().isPreviewing()) {
-                if (!CameraManager.self().isUseOneShotPreviewCallback()) {
-                    camera.setPreviewCallback(null);
-                }
-                camera.stopPreview();
-                CameraManager.self().getPreviewCallback()
-                        .setHandler(null, 0);
-                CameraManager.self().getAutoFocusCallback()
-                        .setHandler(null, 0);
-                CameraManager.self().setPreviewing(false);
-            }
-        }
     }
     
     private void initCamera(SurfaceHolder surfaceHolder) {

@@ -23,6 +23,21 @@ Url：https://github.com/yipianfengye/android-zxingLibrary
 
 用法实例在sample里，值得注意点是，App的继承方式，其继承了RootApp做了些初始化工作
 
+[Url：](https://jitpack.io/#Dazhi528/ZxingScan)
+
+```
+allprojects {
+	repositories {
+		...
+		maven { url 'https://jitpack.io' }
+	}
+	dependencies {
+    	 implementation 'com.github.Dazhi528:ZxingScan:1.0.2'
+    }
+}
+
+```
+
 #### 解耦说明
 由于此库是希望能够配合MvvmAndroidFrame，有一个完美的兼容配合，因此内部
 引入了MvvmAndroidFrame，但如果不想使用MvvmAndroidFrame库，想解耦出来
