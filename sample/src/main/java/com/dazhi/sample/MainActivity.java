@@ -4,16 +4,15 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
-import androidx.annotation.Nullable;
 import com.alibaba.android.arouter.launcher.ARouter;
 import com.dazhi.libroot.root.RootSimpActivity;
 import com.dazhi.libroot.util.RtCmn;
 import com.dazhi.scan.util.UtScan;
+import androidx.annotation.Nullable;
 
 /**
  * 功能：
