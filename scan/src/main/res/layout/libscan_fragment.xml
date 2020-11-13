@@ -16,9 +16,10 @@
         android:layout_height="wrap_content"
         app:inner_frame_width="@dimen/libscan_framewidth"
         app:inner_frame_height="@dimen/libscan_frameheight"
-        app:inner_corner_color="@color/libscan_line"
         app:inner_corner_length="@dimen/libscan_cornerlinelength"
         app:inner_corner_width="@dimen/libscan_cornerlinewidth"
-        app:inner_resultpoint_show="false" />
+        app:inner_corner_color="@color/libscan_frame"
+        app:inner_resultpoint_show="true"
+        app:inner_resultpoint_color="@color/libscan_result_point"/>
 
 </FrameLayout>

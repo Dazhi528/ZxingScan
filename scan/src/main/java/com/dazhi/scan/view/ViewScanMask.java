@@ -1,31 +1,14 @@
-/*
- * Copyright (C) 2008 ZXing authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.dazhi.scan.view;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
+
 import com.dazhi.scan.R;
 import com.dazhi.scan.camera.CameraManager;
 import com.dazhi.scan.util.UtScan;
@@ -39,19 +22,19 @@ import java.util.HashSet;
  */
 public final class ViewScanMask extends View {
     private static final long ANIMATION_DELAY = 100L;
-    private static final int OPAQUE = 0xFF;
+    //    private static final int OPAQUE = 0xFF;
     private Collection<ResultPoint> possibleResultPoints;
     private Collection<ResultPoint> lastPossibleResultPoints;
     //
     private final Paint paint;
     private final int maskColor; // 遮罩颜色(扫描框外部)
     // 布局属性
-    private int innerCornerColor; // 扫描框边角颜色
-    private int innerCornerLength; // 扫描框边角长度
-    private int innerCornerWidth; // 扫描框边角宽度
-    private Bitmap innerLineBitmap; // 扫描线
-    private int lineBitmapTop; // 扫描线移动的y
-    private int innerLineSpeed; // 扫描线移动速度
+    private int innerFrameColor; // 扫描框边角颜色
+    private int innerFrameLength; // 扫描框边角长度
+    private int innerFrameWidth; // 扫描框边角宽度
+    //    private Bitmap innerLineBitmap; // 扫描线
+//    private int lineBitmapTop; // 扫描线移动的y
+//    private int innerLineSpeed; // 扫描线移动速度
     private boolean innerResultPointShow; // 是否展示离散结果点
     private int innerResultPointColor; // 离散结果点颜色
 
@@ -68,6 +51,8 @@ public final class ViewScanMask extends View {
         super(context, attrs, defStyleAttr);
         paint = new Paint();
         maskColor = getResources().getColor(R.color.libscan_mask);
+        innerFrameColor = getResources().getColor(R.color.libscan_frame);
+        innerResultPointColor = getResources().getColor(R.color.libscan_result_point);
         possibleResultPoints = new HashSet<>(5);
         // 初始化内部框参数
         initInnerRect(context, attrs);
@@ -91,20 +76,20 @@ public final class ViewScanMask extends View {
             CameraManager.FRAME_MARGINTOP = (int) innerMarginTop;
         }
         // 扫描框边角颜色
-        innerCornerColor = ta.getColor(R.styleable.ViewScanMask_inner_corner_color,
-                R.color.libscan_line);
+        innerFrameColor = ta.getColor(R.styleable.ViewScanMask_inner_corner_color,
+                R.color.libscan_frame);
         // 扫描框边角长度
-        innerCornerLength = (int) ta.getDimension(R.styleable.ViewScanMask_inner_corner_length,
+        innerFrameLength = (int) ta.getDimension(R.styleable.ViewScanMask_inner_corner_length,
                 R.dimen.libscan_cornerlinelength);
         // 扫描框边角宽度
-        innerCornerWidth = (int) ta.getDimension(R.styleable.ViewScanMask_inner_corner_width,
+        innerFrameWidth = (int) ta.getDimension(R.styleable.ViewScanMask_inner_corner_width,
                 R.dimen.libscan_cornerlinewidth);
         // 扫描控件
-        innerLineBitmap = BitmapFactory.decodeResource(getResources(), ta.getResourceId(
-                R.styleable.ViewScanMask_inner_line_bitmap,
-                R.drawable.ico_libscan_line));
+//        innerLineBitmap = BitmapFactory.decodeResource(getResources(), ta.getResourceId(
+//                R.styleable.ViewScanMask_inner_line_bitmap,
+//                R.drawable.ico_libscan_line));
         // 扫描速度
-        innerLineSpeed = ta.getInt(R.styleable.ViewScanMask_inner_line_speed, 10);
+//        innerLineSpeed = ta.getInt(R.styleable.ViewScanMask_inner_line_speed, 10);
         // 是否展示离散结果点
         innerResultPointShow = ta.getBoolean(R.styleable.ViewScanMask_inner_resultpoint_show,
                 false);
@@ -128,7 +113,11 @@ public final class ViewScanMask extends View {
         canvas.drawRect(frame.right + 1, frame.top, width, frame.bottom + 1, paint);
         canvas.drawRect(0, frame.bottom + 1, width, height, paint);
         drawFrameBounds(canvas, frame);
-        drawScanLine(canvas, frame);
+//        drawScanLine(canvas, frame);
+        // 绘制预测点部分
+        if (!innerResultPointShow) {
+            return;
+        }
         Collection<ResultPoint> currentPossible = possibleResultPoints;
         Collection<ResultPoint> currentLast = lastPossibleResultPoints;
         if (currentPossible.isEmpty()) {
@@ -136,59 +125,55 @@ public final class ViewScanMask extends View {
         } else {
             possibleResultPoints = new HashSet<>(5);
             lastPossibleResultPoints = currentPossible;
-            paint.setAlpha(OPAQUE);
+//            paint.setAlpha(OPAQUE);
             paint.setColor(innerResultPointColor);
-            if (innerResultPointShow) {
-                for (ResultPoint point : currentPossible) {
-                    canvas.drawCircle(frame.left + point.getX(), frame.top + point.getY(), 6.0f, paint);
-                }
+            for (ResultPoint point : currentPossible) {
+                canvas.drawCircle(frame.left + point.getX(), frame.top + point.getY(), 6.0f, paint);
             }
         }
         if (currentLast != null) {
-            paint.setAlpha(OPAQUE / 2);
+//            paint.setAlpha(OPAQUE / 2);
             paint.setColor(innerResultPointColor);
-            if (innerResultPointShow) {
-                for (ResultPoint point : currentLast) {
-                    canvas.drawCircle(frame.left + point.getX(), frame.top + point.getY(), 3.0f, paint);
-                }
+            for (ResultPoint point : currentLast) {
+                canvas.drawCircle(frame.left + point.getX(), frame.top + point.getY(), 3.0f, paint);
             }
         }
         postInvalidateDelayed(ANIMATION_DELAY, frame.left, frame.top, frame.right, frame.bottom);
     }
 
-    /**
+    /*
      * 绘制移动扫描线
      */
-    private boolean booAdd=true;
-    private void drawScanLine(Canvas canvas, Rect frame) {
-        int tempSpace = (frame.bottom-frame.top)/4;
-        int min = frame.top+tempSpace;
-        int max = frame.bottom - tempSpace;
-        if (lineBitmapTop <= min) {
-            lineBitmapTop = min;
-            booAdd=true;
-        }else if (lineBitmapTop >= max) {
-            lineBitmapTop = max;
-            booAdd=false;
-        }
-        if(booAdd){
-            lineBitmapTop += innerLineSpeed;
-        }else {
-            lineBitmapTop -= innerLineSpeed;
-        }
-        Rect scanRect = new Rect(frame.left, lineBitmapTop, frame.right,
-                lineBitmapTop + 6);
-        canvas.drawBitmap(innerLineBitmap, null, scanRect, paint);
-    }
+//    private boolean booAdd=true;
+//    private void drawScanLine(Canvas canvas, Rect frame) {
+//        int tempSpace = (frame.bottom-frame.top)/4;
+//        int min = frame.top+tempSpace;
+//        int max = frame.bottom - tempSpace;
+//        if (lineBitmapTop <= min) {
+//            lineBitmapTop = min;
+//            booAdd=true;
+//        }else if (lineBitmapTop >= max) {
+//            lineBitmapTop = max;
+//            booAdd=false;
+//        }
+//        if(booAdd){
+//            lineBitmapTop += innerLineSpeed;
+//        }else {
+//            lineBitmapTop -= innerLineSpeed;
+//        }
+//        Rect scanRect = new Rect(frame.left, lineBitmapTop, frame.right,
+//                lineBitmapTop + 6);
+//        canvas.drawBitmap(innerLineBitmap, null, scanRect, paint);
+//    }
 
     /**
      * 绘制取景框边框
      */
     private void drawFrameBounds(Canvas canvas, Rect frame) {
-        paint.setColor(innerCornerColor);
+        paint.setColor(innerFrameColor);
         paint.setStyle(Paint.Style.FILL);
-        int corWidth = innerCornerWidth;
-        int corLength = innerCornerLength;
+        int corWidth = innerFrameWidth;
+        int corLength = innerFrameLength;
         // 左上角
         canvas.drawRect(frame.left, frame.top, frame.left + corWidth, frame.top
                 + corLength, paint);

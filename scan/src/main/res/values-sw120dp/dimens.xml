@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
-	<dimen name="libscan_framewidth">73.3333dp</dimen>
-	<dimen name="libscan_frameheight">63.3333dp</dimen>
-	<dimen name="libscan_cornerlinelength">5.0000dp</dimen>
-	<dimen name="libscan_cornerlinewidth">0.6667dp</dimen>
+	<dimen name="libscan_framewidth">70.0000dp</dimen>
+	<dimen name="libscan_frameheight">70.0000dp</dimen>
+	<dimen name="libscan_cornerlinelength">8.3333dp</dimen>
+	<dimen name="libscan_cornerlinewidth">1.3333dp</dimen>
 	<dimen name="libscan_btmargin">16.6667dp</dimen>
 	<dimen name="libscan_btdrawablepadding">3.3333dp</dimen>
 </resources>

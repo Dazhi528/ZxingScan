@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.graphics.Bitmap;
-import android.hardware.Camera;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -28,6 +27,7 @@ import java.io.IOException;
 import java.util.Vector;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 
 /**
  * 自定义实现的扫描Fragment
@@ -45,7 +45,6 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
     private boolean vibrate;
     private SurfaceHolder surfaceHolder;
     private UtScan.AnalyzeCallback analyzeCallback;
-    private Camera camera;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -90,14 +89,16 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
         decodeFormats = null;
         characterSet = null;
         playBeep = true;
-        getActivity();
-        AudioManager audioService = (AudioManager) getActivity()
-                .getSystemService(Context.AUDIO_SERVICE);
-        if (audioService.getRingerMode() != AudioManager.RINGER_MODE_NORMAL) {
-            playBeep = false;
+        FragmentActivity mActivity = getActivity();
+        if(mActivity!=null) {
+            AudioManager audioService = (AudioManager) mActivity
+                    .getSystemService(Context.AUDIO_SERVICE);
+            if (audioService.getRingerMode() != AudioManager.RINGER_MODE_NORMAL) {
+                playBeep = false;
+            }
+            initBeepSound();
+            vibrate = true;
         }
-        initBeepSound();
-        vibrate = true;
     }
 
     @Override
@@ -140,7 +141,6 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
     private void initCamera(SurfaceHolder surfaceHolder) {
         try {
             CameraManager.self().openDriver(getActivity(), surfaceHolder);
-            camera = CameraManager.self().getCamera();
         } catch (Exception e) {
             return;
         }
@@ -151,7 +151,11 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
     }
     private void initBeepSound() {
         if (playBeep && mediaPlayer == null) {
-            getActivity().setVolumeControlStream(AudioManager.STREAM_MUSIC);
+            FragmentActivity mActivity=getActivity();
+            if(mActivity==null) {
+                return;
+            }
+            mActivity.setVolumeControlStream(AudioManager.STREAM_MUSIC);
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
             mediaPlayer.setOnCompletionListener(beepListener);
@@ -204,7 +208,11 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
             mediaPlayer.start();
         }
         if (vibrate) {
-            Vibrator vibrator = (Vibrator) getActivity()
+            FragmentActivity mActivity = getActivity();
+            if(mActivity==null) {
+                return;
+            }
+            Vibrator vibrator = (Vibrator) mActivity
                     .getSystemService(Context.VIBRATOR_SERVICE);
             vibrator.vibrate(200);
         }

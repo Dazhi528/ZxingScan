@@ -1,19 +1,3 @@
-/*
- * Copyright (C) 2008 ZXing authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.dazhi.scan.decoding;
 
 import android.app.Activity;
@@ -23,8 +7,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
-
 import com.dazhi.scan.R;
 import com.dazhi.scan.ScanFragment;
 import com.dazhi.scan.camera.CameraManager;
@@ -34,13 +16,9 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.Result;
 import java.util.Vector;
 
-/**
- * This class handles all the messaging which comprises the state machine for capture.
- */
+import androidx.fragment.app.FragmentActivity;
+
 public final class ScanActivityHandler extends Handler {
-
-    private static final String TAG = ScanActivityHandler.class.getSimpleName();
-
     private final ScanFragment fragment;
     private final DecodeThread decodeThread;
     private State state;
@@ -73,10 +51,10 @@ public final class ScanActivityHandler extends Handler {
                 CameraManager.self().requestAutoFocus(this, R.id.auto_focus);
             }
         } else if (message.what == R.id.restart_preview) {
-            Log.d(TAG, "Got restart preview message");
+            //Log.d(TAG, "Got restart preview message");
             restartPreviewAndDecode();
         } else if (message.what == R.id.decode_succeeded) {
-            Log.d(TAG, "Got decode succeeded message");
+            //Log.d(TAG, "Got decode succeeded message");
             state = State.SUCCESS;
             Bundle bundle = message.getData();
             //
@@ -88,15 +66,21 @@ public final class ScanActivityHandler extends Handler {
             state = State.PREVIEW;
             CameraManager.self().requestPreviewFrame(decodeThread.getHandler(), R.id.decode);
         } else if (message.what == R.id.return_scan_result) {
-            Log.d(TAG, "Got return scan result message");
-            fragment.getActivity().setResult(Activity.RESULT_OK, (Intent) message.obj);
-            fragment.getActivity().finish();
+            //Log.d(TAG, "Got return scan result message");
+            FragmentActivity mActivity=fragment.getActivity();
+            if(mActivity!=null) {
+                mActivity.setResult(Activity.RESULT_OK, (Intent) message.obj);
+                mActivity.finish();
+            }
         } else if (message.what == R.id.launch_product_query) {
-            Log.d(TAG, "Got product query message");
+            //Log.d(TAG, "Got product query message");
             String url = (String) message.obj;
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-            fragment.getActivity().startActivity(intent);
+            FragmentActivity mActivity=fragment.getActivity();
+            if(mActivity!=null) {
+                mActivity.startActivity(intent);
+            }
         }
     }
 

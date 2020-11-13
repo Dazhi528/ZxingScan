@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!--扫描-->
-    <dimen name="libscan_framewidth">220dp</dimen>
-    <dimen name="libscan_frameheight">190dp</dimen>
-    <dimen name="libscan_cornerlinelength">15dp</dimen>
-    <dimen name="libscan_cornerlinewidth">2dp</dimen>
+    <dimen name="libscan_framewidth">210dp</dimen>
+    <dimen name="libscan_frameheight">210dp</dimen>
+    <dimen name="libscan_cornerlinelength">25dp</dimen>
+    <dimen name="libscan_cornerlinewidth">4dp</dimen>
     <dimen name="libscan_btmargin">50dp</dimen>
     <dimen name="libscan_btdrawablepadding">10dp</dimen>
 </resources>

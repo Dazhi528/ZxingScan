@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="libscan_bttext">#FFFFFF</color>
-    <color name="libscan_line">#3B8DE9</color>
     <color name="libscan_mask">#60000000</color>
-    <color name="libscan_result_point">#c0ffff00</color>
+    <color name="libscan_frame">#00FF00</color>
+    <color name="libscan_result_point">#FFFF00</color>
 </resources>

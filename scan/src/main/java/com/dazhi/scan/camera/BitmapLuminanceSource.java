@@ -3,10 +3,6 @@ package com.dazhi.scan.camera;
 import android.graphics.Bitmap;
 import com.google.zxing.LuminanceSource;
 
-/**
- * Created by aaron on 16/7/27.
- * 自定义解析Bitmap LuminanceSource
- */
 public class BitmapLuminanceSource extends LuminanceSource {
     private final byte[] bitmapPixels;
 
