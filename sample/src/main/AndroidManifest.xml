@@ -4,11 +4,10 @@
     package="com.dazhi.sample">
 
     <application
-        android:name=".App"
         android:allowBackup="true"
         android:supportsRtl="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label="扫码识别"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/LibRootTheme"
         tools:ignore="AllowBackup,UnusedAttribute">

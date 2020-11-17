@@ -16,7 +16,7 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import com.dazhi.scan.camera.CameraManager;
-import com.dazhi.scan.decoding.ScanActivityHandler;
+import com.dazhi.scan.decoding.ScanHandler;
 import com.dazhi.scan.decoding.InactivityTimer;
 import com.dazhi.scan.util.UtScan;
 import com.dazhi.scan.view.ViewScanMask;
@@ -33,7 +33,7 @@ import androidx.fragment.app.FragmentActivity;
  * 自定义实现的扫描Fragment
  */
 public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
-    private ScanActivityHandler handler;
+    private ScanHandler handler;
     private ViewScanMask viewScanMask;
     private boolean hasSurface;
     private Vector<BarcodeFormat> decodeFormats;
@@ -108,6 +108,7 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
             handler.quitSynchronously();
             handler = null;
         }
+        viewScanMask.setCameraRuning(false);
         CameraManager.self().closeDriver();
     }
 
@@ -144,8 +145,10 @@ public class ScanFragment extends Fragment implements SurfaceHolder.Callback {
         } catch (Exception e) {
             return;
         }
+        viewScanMask.setCameraRuning(true);
+        viewScanMask.postInvalidate();
         if (handler == null) {
-            handler = new ScanActivityHandler(this, decodeFormats,
+            handler = new ScanHandler(this, decodeFormats,
                     characterSet, viewScanMask);
         }
     }

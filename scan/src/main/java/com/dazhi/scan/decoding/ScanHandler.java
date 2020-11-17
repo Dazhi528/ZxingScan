@@ -18,7 +18,7 @@ import java.util.Vector;
 
 import androidx.fragment.app.FragmentActivity;
 
-public final class ScanActivityHandler extends Handler {
+public final class ScanHandler extends Handler {
     private final ScanFragment fragment;
     private final DecodeThread decodeThread;
     private State state;
@@ -29,8 +29,8 @@ public final class ScanActivityHandler extends Handler {
         DONE
     }
 
-    public ScanActivityHandler(ScanFragment fragment, Vector<BarcodeFormat> decodeFormats,
-                               String characterSet, ViewScanMask viewfinderView) {
+    public ScanHandler(ScanFragment fragment, Vector<BarcodeFormat> decodeFormats,
+                       String characterSet, ViewScanMask viewfinderView) {
         super();
         this.fragment = fragment;
         decodeThread = new DecodeThread(fragment, decodeFormats, characterSet,

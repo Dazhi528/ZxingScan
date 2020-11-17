@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.alibaba.android.arouter.launcher.ARouter;
 import com.dazhi.libroot.root.RootSimpActivity;
 import com.dazhi.libroot.util.RtCmn;
+import com.dazhi.libroot.util.RtLog;
 import com.dazhi.scan.util.UtScan;
 import androidx.annotation.Nullable;
 
@@ -32,6 +33,7 @@ public class MainActivity extends RootSimpActivity {
     @Override
     protected void initConfig(TextView tvToolTitle) {
         tvToolTitle.setText("扫描库");
+        RtLog.setOpen();
     }
 
     @Override

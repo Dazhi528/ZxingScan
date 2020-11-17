@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
 
+import com.dazhi.libroot.util.RtLog;
 import com.dazhi.scan.R;
 import com.dazhi.scan.camera.CameraManager;
 import com.dazhi.scan.util.UtScan;
@@ -23,6 +24,7 @@ import java.util.HashSet;
 public final class ViewScanMask extends View {
     private static final long ANIMATION_DELAY = 100L;
     //    private static final int OPAQUE = 0xFF;
+    private boolean cameraRuning=false;
     private Collection<ResultPoint> possibleResultPoints;
     private Collection<ResultPoint> lastPossibleResultPoints;
     //
@@ -138,7 +140,9 @@ public final class ViewScanMask extends View {
                 canvas.drawCircle(frame.left + point.getX(), frame.top + point.getY(), 3.0f, paint);
             }
         }
-        postInvalidateDelayed(ANIMATION_DELAY, frame.left, frame.top, frame.right, frame.bottom);
+        if(cameraRuning) {
+            postInvalidateDelayed(ANIMATION_DELAY, frame.left, frame.top, frame.right, frame.bottom);
+        }
     }
 
     /*
@@ -198,6 +202,10 @@ public final class ViewScanMask extends View {
 
     public void addPossibleResultPoint(ResultPoint point) {
         possibleResultPoints.add(point);
+    }
+
+    public void setCameraRuning(boolean cameraRuning) {
+        this.cameraRuning = cameraRuning;
     }
 
 }
